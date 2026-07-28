@@ -148,9 +148,9 @@ class Classification(pl.LightningModule):
         inputs.edata["x"] = inputs.edata["x"].permute(0, 2, 1)
         logits = self.model(inputs)
         loss = F.cross_entropy(logits, labels, reduction="mean")
-        self.log("train_loss", loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("train_loss", loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
         preds = F.softmax(logits, dim=-1)
-        self.log("train_acc", self.train_acc(preds, labels), on_step=False, on_epoch=True, sync_dist=True)
+        self.log("train_acc", self.train_acc(preds, labels), on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -160,9 +160,9 @@ class Classification(pl.LightningModule):
         inputs.edata["x"] = inputs.edata["x"].permute(0, 2, 1)
         logits = self.model(inputs)
         loss = F.cross_entropy(logits, labels, reduction="mean")
-        self.log("val_loss", loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("val_loss", loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
         preds = F.softmax(logits, dim=-1)
-        self.log("val_acc", self.val_acc(preds, labels), on_step=False, on_epoch=True, sync_dist=True)
+        self.log("val_acc", self.val_acc(preds, labels), on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
         return loss
 
     def test_step(self, batch, batch_idx):
@@ -172,9 +172,9 @@ class Classification(pl.LightningModule):
         inputs.edata["x"] = inputs.edata["x"].permute(0, 2, 1)
         logits = self.model(inputs)
         loss = F.cross_entropy(logits, labels, reduction="mean")
-        self.log("test_loss", loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("test_loss", loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
         preds = F.softmax(logits, dim=-1)
-        self.log("test_acc", self.test_acc(preds, labels), on_step=False, on_epoch=True, sync_dist=True)
+        self.log("test_acc", self.test_acc(preds, labels), on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters())
@@ -295,15 +295,15 @@ class Segmentation(pl.LightningModule):
         labels = inputs.ndata["y"]
         logits = self.model(inputs)
         loss = F.cross_entropy(logits, labels, reduction="mean")
-        self.log("train_loss", loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("train_loss", loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
         preds = F.softmax(logits, dim=-1)
         self.train_iou(preds, labels)
         self.train_accuracy(preds, labels)
         return loss
 
     def training_epoch_end(self, outs):
-        self.log("train_iou", self.train_iou.compute())
-        self.log("train_accuracy", self.train_accuracy.compute())
+        self.log("train_iou", self.train_iou.compute(), batch_size=1)
+        self.log("train_accuracy", self.train_accuracy.compute(), batch_size=1)
 
     def validation_step(self, batch, batch_idx):
         inputs = batch["graph"].to(self.device)
@@ -312,15 +312,15 @@ class Segmentation(pl.LightningModule):
         labels = inputs.ndata["y"]
         logits = self.model(inputs)
         loss = F.cross_entropy(logits, labels, reduction="mean")
-        self.log("val_loss", loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("val_loss", loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
         preds = F.softmax(logits, dim=-1)
         self.val_iou(preds, labels)
         self.val_accuracy(preds, labels)
         return loss
 
     def validation_epoch_end(self, outs):
-        self.log("val_iou", self.val_iou.compute())
-        self.log("val_accuracy", self.val_accuracy.compute())
+        self.log("val_iou", self.val_iou.compute(), batch_size=1)
+        self.log("val_accuracy", self.val_accuracy.compute(), batch_size=1)
 
     def test_step(self, batch, batch_idx):
         inputs = batch["graph"].to(self.device)
@@ -329,14 +329,14 @@ class Segmentation(pl.LightningModule):
         labels = inputs.ndata["y"]
         logits = self.model(inputs)
         loss = F.cross_entropy(logits, labels, reduction="mean")
-        self.log("test_loss", loss, on_step=False, on_epoch=True, sync_dist=True)
+        self.log("test_loss", loss, on_step=False, on_epoch=True, sync_dist=True, batch_size=batch.batch_size)
         preds = F.softmax(logits, dim=-1)
         self.test_iou(preds, labels)
         self.test_accuracy(preds, labels)
 
     def test_epoch_end(self, outs):
-        self.log("test_iou", self.test_iou.compute())
-        self.log("test_accuracy", self.test_accuracy.compute())
+        self.log("test_iou", self.test_iou.compute(), batch_size=1)
+        self.log("test_accuracy", self.test_accuracy.compute(), batch_size=1)
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters())
