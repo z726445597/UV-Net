@@ -21,6 +21,9 @@ Cloned from the verified `brepnet` env:
 Additional installs for UV-Net: `trimesh`.
 (joblib / matplotlib / scikit-learn / tqdm were already present.)
 
+Full package fingerprint: see `environment-adapted.yml`
+(conda env export).
+
 ## 2. Differences from the official environment.yml
 
 | Official pin | This env |
@@ -66,11 +69,26 @@ restored by reinstalling dgl.
 - `import dgl` -&gt; 2.2.1+cu121 OK
 - GraphConv forward on CPU OK
 - GraphConv forward on CUDA OK
+- Preprocessing demo: `process/solid_to_graph.py` on 50 STEP files
+  (Fusion 360 Gallery s2.0.0 subset) -&gt; 50 DGL graph `.bin` files,
+  no errors (occwl 3.0.0 pipeline); verified feature shapes:
+  node (num_faces, 10, 10, 7), edge (num_edges, 10, 6)
+- Smoke training (Fusion 360 Gallery segmentation, official
+  preprocessed graphs): 10 epochs on RTX 5070, batch_size 64,
+  ~29 s/epoch; test set per-face segmentation IoU 61.17%.
+  Same-dataset 10-epoch reference: BRepNet acc 0.834 / mIoU 0.550.
 
 ## 6. Code-level adaptations (no changes to model logic)
 
 1. Replace deprecated np.int with np.int64 (numpy 1.23.5 compatibility)
    (commit bdf3d2ddf36c0e14af15a3a67af1666827e6c08e)
 2. Adapt torchmetrics 0.3 API to 1.x: Accuracy(task/num_classes),
-   IoU -> JaccardIndex, drop compute_on_step
+   IoU -&gt; JaccardIndex, drop compute_on_step
    (commit 035f592883c28ad20b4f456ed17bbef3e13123d6)
+3. Pass explicit batch_size to self.log for PL 1.9 DGLGraph batches
+   (samples are dicts with a "graph" key; correct expression is
+   batch["graph"].batch_size — initial commit fafa512f476c442fa15d938afaf6fed0bb3a8270,
+   expression fixed in c79556d1711cf5e503b757f2aa7ff40604d8c6f7)
+4. Rename test_dataloaders kwarg to dataloaders for PL 1.9
+   compatibility (segmentation.py, classification.py)
+   (commits 5895c12309cc3e6efee599f554a36be2202f4743 and c78dc55925646c115de6bbb8576b9099ccb0bde1)

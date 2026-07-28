@@ -1,3 +1,10 @@
+> **Note (fork)**: This fork adapts UV-Net to a modernized environment
+> (PyTorch 2.11 + CUDA 12.8, RTX 50-series, Windows). See
+> [ENVIRONMENT.md](ENVIRONMENT.md) for environment pins, required
+> patches, and verification logs; code-level adaptations are listed in
+> §6 with commit references. Full package fingerprint:
+> `environment-adapted.yml`. The original README follows below.
+
 # UV-Net: Learning from Boundary Representations
 
 This repository contains code for the paper:
