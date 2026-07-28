@@ -133,9 +133,9 @@ class Classification(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.model = UVNetClassifier(num_classes=num_classes)
-        self.train_acc = torchmetrics.Accuracy()
-        self.val_acc = torchmetrics.Accuracy()
-        self.test_acc = torchmetrics.Accuracy()
+        self.train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
+        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
+        self.test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
 
     def forward(self, batched_graph):
         logits = self.model(batched_graph)
@@ -273,24 +273,16 @@ class Segmentation(pl.LightningModule):
         super().__init__()
         self.save_hyperparameters()
         self.model = UVNetSegmenter(num_classes, crv_in_channels=crv_in_channels)
-        # Setting compute_on_step = False to compute "part IoU"
+        # IoU computed over accumulated epoch state
         # This is because we want to compute the IoU on the entire dataset
         # at the end to account for rare classes, rather than within each batch
-        self.train_iou = torchmetrics.IoU(
-            num_classes=num_classes, compute_on_step=False
-        )
-        self.val_iou = torchmetrics.IoU(num_classes=num_classes, compute_on_step=False)
-        self.test_iou = torchmetrics.IoU(num_classes=num_classes, compute_on_step=False)
+        self.train_iou = torchmetrics.JaccardIndex(task="multiclass", num_classes=num_classes)
+        self.val_iou = torchmetrics.JaccardIndex(task="multiclass", num_classes=num_classes)
+        self.test_iou = torchmetrics.JaccardIndex(task="multiclass", num_classes=num_classes)
 
-        self.train_accuracy = torchmetrics.Accuracy(
-            num_classes=num_classes, compute_on_step=False
-        )
-        self.val_accuracy = torchmetrics.Accuracy(
-            num_classes=num_classes, compute_on_step=False
-        )
-        self.test_accuracy = torchmetrics.Accuracy(
-            num_classes=num_classes, compute_on_step=False
-        )
+        self.train_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
+        self.val_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
+        self.test_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=num_classes)
 
     def forward(self, batched_graph):
         logits = self.model(batched_graph)
