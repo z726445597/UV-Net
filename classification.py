@@ -107,7 +107,7 @@ else:
         batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers
     )
     model = Classification.load_from_checkpoint(args.checkpoint)
-    results = trainer.test(model=model, test_dataloaders=[test_loader], verbose=False)
+    results = trainer.test(model=model, dataloaders=[test_loader], verbose=False)
     print(
         f"Classification accuracy (%) on test set: {results[0]['test_acc_epoch'] * 100.0}"
     )
