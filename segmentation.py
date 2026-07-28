@@ -127,5 +127,5 @@ else:
     test_loader = test_data.get_dataloader(
         batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers
     )
-    results = trainer.test(model=model, test_dataloaders=[test_loader], verbose=False)
+    results = trainer.test(model=model, dataloaders=[test_loader], verbose=False)
     print(f"Segmentation IoU (%) on test set: {results[0]['test_iou'] * 100.0}")
