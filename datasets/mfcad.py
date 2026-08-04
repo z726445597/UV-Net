@@ -1,3 +1,8 @@
+# =============================================================================
+# u-stage adapt (B 类, 公平性配置统一; 登记见 U_COMMITS.md):
+#   num_classes() 16 -> 25 —— MFCAD++ 为 25 类(原返回值 16 系旧 MFCAD 数据集的
+#   官方默认值, 与数据集无关的逻辑零改动)
+# =============================================================================
 from datasets.base import BaseDataset
 import pathlib
 import torch
@@ -7,7 +12,7 @@ import json
 class MFCADDataset(BaseDataset):
     @staticmethod
     def num_classes():
-        return 16
+        return 25
 
     def __init__(
         self, root_dir, split="train", center_and_scale=True, random_rotate=False,

@@ -1,9 +1,16 @@
+# =============================================================================
+# u-stage adapt (B 类, 公平性配置统一; 逐条登记见 U_COMMITS.md):
+#   [1] seed_everything(workers=True) -> seed_everything(24, workers=True)  —— 种子统一 24
+#   [2] Trainer callbacks + EarlyStopping(monitor="val_loss",
+#       mode="min", patience=50)                                          —— 早停耐心统一 50
+# 官方逻辑(模型/优化器/dataloader/augmentation 默认关)零改动。
+# =============================================================================
 import argparse
 import pathlib
 import time
 
 from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
+from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.utilities.seed import seed_everything
 
@@ -69,9 +76,16 @@ checkpoint_callback = ModelCheckpoint(
     filename="best",
     save_last=True,
 )
+# u-stage adapt[2]: 四管线统一 EarlyStopping patience=50 (monitor 随官方 val_loss)
+early_stop_callback = EarlyStopping(
+    monitor="val_loss",
+    mode="min",
+    patience=50,
+    verbose=True,
+)
 trainer = Trainer.from_argparse_args(
     args,
-    callbacks=[checkpoint_callback],
+    callbacks=[checkpoint_callback, early_stop_callback],
     logger=TensorBoardLogger(
         str(results_path), name=month_day, version=hour_min_second,
     ),
@@ -83,8 +97,8 @@ elif args.dataset == "fusiongallery":
     Dataset = FusionGalleryDataset
 
 if args.traintest == "train":
-    # Train/val
-    seed_everything(workers=True)
+    # u-stage adapt[1]: 四管线统一种子 24
+    seed_everything(24, workers=True)
     print(
         f"""
 -----------------------------------------------------------------------------------
